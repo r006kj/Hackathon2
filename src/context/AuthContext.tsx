@@ -1,20 +1,9 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-} from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import type { User, LoginRequest, LoginResponse } from '../types/api';
 import { api, ApiException } from '../lib/apiClient';
 
-interface AuthState {
-  user: User | null;
-  isLoading: boolean;   
-  error: string | null;
-}
-
+interface AuthState { user: User | null; isLoading: boolean; error: string | null }
 interface AuthContextValue extends AuthState {
   isAuthenticated: boolean;
   login: (creds: LoginRequest) => Promise<void>;
@@ -24,21 +13,18 @@ interface AuthContextValue extends AuthState {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<AuthState>({
+  // Fix: estado inicial lazy → evita setState sincrónico en el efecto
+  const [state, setState] = useState<AuthState>(() => ({
     user: null,
-    isLoading: true,   
+    isLoading: !!localStorage.getItem('jwt'), // true sólo si hay token que verificar
     error: null,
-  });
+  }));
 
- 
   useEffect(() => {
     const token = localStorage.getItem('jwt');
-    if (!token) {
-      setState({ user: null, isLoading: false, error: null });
-      return;
-    }
-    api
-      .get<User>('/api/v1/auth/me')
+    if (!token) return; // estado ya correcto desde initializer, no setState aquí
+
+    api.get<User>('/api/v1/auth/me')
       .then((user) => setState({ user, isLoading: false, error: null }))
       .catch(() => {
         localStorage.removeItem('jwt');
@@ -56,7 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (e) {
       const msg = e instanceof ApiException ? e.data.message : 'Error de conexión';
       setState({ user: null, isLoading: false, error: msg });
-      throw e; // el componente puede capturarlo si necesita
+      throw e;
     }
   }, []);
 

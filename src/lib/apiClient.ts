@@ -2,9 +2,15 @@ import type { ApiError } from '../types/api';
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? '';
 
+// Fix: sin "public readonly" en constructor (erasableSyntaxOnly)
 export class ApiException extends Error {
-  constructor(public readonly data: ApiError, public readonly status: number) {
+  readonly data: ApiError;
+  readonly status: number;
+
+  constructor(data: ApiError, status: number) {
     super(data.message);
+    this.data = data;
+    this.status = status;
     this.name = 'ApiException';
   }
 }
@@ -34,37 +40,25 @@ interface Options {
   headers?: Record<string, string>;
 }
 
-async function request<T>(
-  method: string,
-  endpoint: string,
-  body?: unknown,
-  opts: Options = {},
-): Promise<T> {
+async function request<T>(method: string, endpoint: string, body?: unknown, opts: Options = {}): Promise<T> {
   const { params, signal, headers: extra } = opts;
-
   const res = await fetch(buildUrl(endpoint, params), {
     method,
     signal,
-    headers: {
-      'Content-Type': 'application/json',
-      ...getAuthHeader(),
-      ...extra,
-    },
+    headers: { 'Content-Type': 'application/json', ...getAuthHeader(), ...extra },
     ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
   });
-
   if (!res.ok) {
     const err: ApiError = await res.json();
     throw new ApiException(err, res.status);
   }
-
   if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
 }
 
 export const api = {
-  get:    <T>(ep: string, opts?: Options)                  => request<T>('GET',    ep, undefined, opts),
-  post:   <T>(ep: string, body: unknown, opts?: Options)   => request<T>('POST',   ep, body,      opts),
-  patch:  <T>(ep: string, body: unknown, opts?: Options)   => request<T>('PATCH',  ep, body,      opts),
-  delete: <T>(ep: string, opts?: Options)                  => request<T>('DELETE', ep, undefined, opts),
+  get:    <T>(ep: string, opts?: Options)                => request<T>('GET',    ep, undefined, opts),
+  post:   <T>(ep: string, body: unknown, opts?: Options) => request<T>('POST',   ep, body,      opts),
+  patch:  <T>(ep: string, body: unknown, opts?: Options) => request<T>('PATCH',  ep, body,      opts),
+  delete: <T>(ep: string, opts?: Options)                => request<T>('DELETE', ep, undefined, opts),
 };
