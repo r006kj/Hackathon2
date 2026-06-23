@@ -1,0 +1,114 @@
+/*
+ * Sector Story Engine — CSS "moderno" que no puede expresarse con utilidades
+ * de Tailwind (keyframes, @supports, ::view-transition-*, animation-timeline).
+ * Todo va detrás de @supports / @media: si el navegador no soporta una API,
+ * simplemente no aplica nada y el componente sigue funcionando vía React
+ * (ver useStoryScroll.ts para los fallbacks en JS).
+ */
+
+/* ── Barra de progreso de lectura ───────────────────────────────────────── */
+.story-progress-track {
+  position: relative;
+  overflow: hidden;
+}
+
+.story-progress-fill {
+  transform-origin: left center;
+  transform: scaleX(0);
+  will-change: transform;
+}
+
+/* Camino "moderno": el progreso lo calcula el compositor del navegador,
+   atado al scroll del documento. Cero JS, cero jank. */
+@supports (animation-timeline: scroll()) or (animation-timeline: view()) {
+  .story-progress-fill--scroll-driven {
+    animation-name: story-progress-fill;
+    animation-duration: 1ms; /* el valor real lo fija animation-timeline */
+    animation-fill-mode: both;
+    animation-timeline: scroll(root block);
+  }
+}
+
+@keyframes story-progress-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ── Aura lateral/de fondo: transición de color suave entre etapas ───────── */
+.story-aura {
+  background-color: var(--stage-color, #111827);
+  transition: background-color 500ms ease;
+}
+
+.story-aura::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.55;
+  transition: opacity 500ms ease;
+  background: radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--stage-color, #111827) 70%, white), transparent 70%);
+}
+
+/* ── View Transition: del resumen al inicio de la historia ───────────────── */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 420ms;
+  animation-timing-function: ease;
+}
+
+::view-transition-old(root) {
+  animation-name: story-fade-out;
+}
+
+::view-transition-new(root) {
+  animation-name: story-fade-in;
+}
+
+@keyframes story-fade-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+
+@keyframes story-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(1.02);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ── prefers-reduced-motion: cancela TODA animación/transición del módulo ── */
+@media (prefers-reduced-motion: reduce) {
+  .story-progress-fill,
+  .story-aura,
+  .story-aura::after,
+  .story-stage-card {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
+}
+
+/* ── Foco visible consistente para navegación 100% por teclado ───────────── */
+.story-focusable:focus-visible {
+  outline: 2px solid #22d3ee;
+  outline-offset: 3px;
+  border-radius: 0.5rem;
+}
