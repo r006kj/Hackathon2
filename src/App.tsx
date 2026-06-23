@@ -3,7 +3,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
-// CP2 → import { TropelsPage }     from './pages/TropelsPage';
+import { TropelsPage }     from './pages/TropelsPage';
 // CP3 → import { SignalFeedPage }  from './pages/SignalFeedPage';
 // CP4 → import { SignalDetailPage } from './pages/SignalDetailPage';
 // CP5 → import { SectorStoryPage } from './pages/SectorStoryPage';
@@ -19,7 +19,7 @@ export default function App() {
           {/* Protegidas */}
           <Route element={<ProtectedRoute />}>
             <Route index element={<DashboardPage />} />
-            {/* <Route path="/tropels"              element={<TropelsPage />} />      */}
+            {<Route path="/tropels"              element={<TropelsPage />} /> }
             {/* <Route path="/signals"              element={<SignalFeedPage />} />   */}
             {/* <Route path="/signals/:id"          element={<SignalDetailPage />} /> */}
             {/* <Route path="/sectors/:id/story"    element={<SectorStoryPage />} /> */}
