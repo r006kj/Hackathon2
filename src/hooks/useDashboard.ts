@@ -13,7 +13,7 @@ export function useDashboard() {
     let cancelled = false;
     // Sin setState sincrónico aquí — el loading ya está activo desde el estado inicial / refetch
 
-    api.get<DashboardSummary>('/api/v1/dashboard/summary')
+    api.get<DashboardSummary>('/dashboard/summary')
       .then((data) => {
         if (!cancelled) setState({ data, isLoading: false, error: null });
       })

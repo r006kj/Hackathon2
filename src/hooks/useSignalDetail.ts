@@ -28,7 +28,7 @@ export function useSignalDetail(id: string) {
     setState({ data: null, isLoading: true, error: null });
 
     api
-      .get<Signal>(`/api/v1/signals/${id}`)
+      .get<Signal>(`/signals/${id}`)
       .then((data) => {
         if (!cancelled) setState({ data, isLoading: false, error: null });
       })

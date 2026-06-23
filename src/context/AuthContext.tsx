@@ -24,7 +24,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const token = localStorage.getItem('jwt');
     if (!token) return; // estado ya correcto desde initializer, no setState aquí
 
-    api.get<User>('/api/v1/auth/me')
+    api.get<User>('/auth/me')
       .then((user) => setState({ user, isLoading: false, error: null }))
       .catch(() => {
         localStorage.removeItem('jwt');
